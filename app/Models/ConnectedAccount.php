@@ -8,6 +8,7 @@ use JoelButcher\Socialstream\ConnectedAccount as SocialstreamConnectedAccount;
 use JoelButcher\Socialstream\Events\ConnectedAccountCreated;
 use JoelButcher\Socialstream\Events\ConnectedAccountDeleted;
 use JoelButcher\Socialstream\Events\ConnectedAccountUpdated;
+use Crudly\Encrypted\Encrypted;
 
 class ConnectedAccount extends SocialstreamConnectedAccount
 {
@@ -40,5 +41,16 @@ class ConnectedAccount extends SocialstreamConnectedAccount
         'created' => ConnectedAccountCreated::class,
         'updated' => ConnectedAccountUpdated::class,
         'deleted' => ConnectedAccountDeleted::class,
+    ];
+
+    /**
+     * The casts for the model.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'token' => Encrypted::class,
+        'secret' => Encrypted::class,
+        'refresh_token' => Encrypted::class,
     ];
 }

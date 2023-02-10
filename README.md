@@ -1,66 +1,162 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# laravel-socialstream-encrypted
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+This is an example [Laravel](https://laravel.com) application that uses [Socialstream](https://github.com/joelbutcher/socialstream) for social authentication and [Crudly/Encrypted](https://github.com/Crudly/Encrypted) to encrypt social secrets in the database.
 
-## About Laravel
+It is good practice to encrypt sensitive values in your database. If an attacker would gain access to your database (and not your application server that holds your encryption key), that would only have access to useless encrypted values from your database.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+**Note that this doesn't mean passwords!** Passwords should be hashed and never encrypted. Let Laravel handle that. This is only meant for values that need to be used decrypted, like in this case social authentication tokens.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+You can clone this repo, but I don't expect to routinely keep it up-to-date, so you should instead probably recreate this from scratch in order to get the most recent packages.
 
-## Learning Laravel
+-   Create a new Laravel application.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+curl -s "https://laravel.build/laravel-jetsream-encrypted" | bash
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+-   Start the application.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 2000 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+./vendor/bin/sail up
+```
 
-## Laravel Sponsors
+-   Install the Socialstream and Encrypted packages.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+```bash
+./vendor/bin/sail composer require joelbutcher/socialstream crudly/encrypted
+```
 
-### Premium Partners
+-   Install Socialstream [per the documentation](https://docs.socialstream.dev/getting-started/installation). Here, I've chosen the Inertia & SSR version.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+```bash
+./vendor/bin/sail artisan socialstream:install --stack=inertia --ssr
+```
 
-## Contributing
+-   DO NOT YET RUN MIGRATIONS.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+-   Modify `app/models/ConnectedAccounts.php` to use `Encrypted` to encrypt the sensitive fields.
 
-## Code of Conduct
+```diff
+<?php
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+namespace App\Models;
 
-## Security Vulnerabilities
+use Illuminate\Database\Eloquent\Concerns\HasTimestamps;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use JoelButcher\Socialstream\ConnectedAccount as SocialstreamConnectedAccount;
+use JoelButcher\Socialstream\Events\ConnectedAccountCreated;
+use JoelButcher\Socialstream\Events\ConnectedAccountDeleted;
+use JoelButcher\Socialstream\Events\ConnectedAccountUpdated;
++ use Crudly\Encrypted\Encrypted;
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+class ConnectedAccount extends SocialstreamConnectedAccount
+{
+    use HasFactory;
+    use HasTimestamps;
 
-## License
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'provider',
+        'provider_id',
+        'name',
+        'nickname',
+        'email',
+        'avatar_path',
+        'token',
+        'refresh_token',
+        'expires_at',
+    ];
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+    /**
+     * The event map for the model.
+     *
+     * @var array
+     */
+    protected $dispatchesEvents = [
+        'created' => ConnectedAccountCreated::class,
+        'updated' => ConnectedAccountUpdated::class,
+        'deleted' => ConnectedAccountDeleted::class,
+    ];
+
++    /**
++     * The casts for the model.
++     *
++     * @var array
++     */
++    protected $casts = [
++        'token' => Encrypted::class,
++        'secret' => Encrypted::class,
++        'refresh_token' => Encrypted::class,
++    ];
+}
+```
+
+-   Modify the `app/database/migrations/2020_12_22_000000_create_connected_accounts_table.php` to ensure that the sensitive columns are large enough to accept encrypted values. This is likely not strictly necessary depending upon which providers you use for social authentication, but I'd prefer to do this rather than mistakenly overflow the column.
+
+```diff
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateConnectedAccountsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('connected_accounts', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id');
+            $table->string('provider');
+            $table->string('provider_id');
+            $table->string('name')->nullable();
+            $table->string('nickname')->nullable();
+            $table->string('email')->nullable();
+            $table->string('telephone')->nullable();
+            $table->text('avatar_path')->nullable();
+-             $table->string('token', 1000);
++             $table->text('token');
+-             $table->string('secret')->nullable(); // OAuth1
++             $table->text('secret')->nullable(); // OAuth1
+-             $table->string('refresh_token', 1000)->nullable(); // OAuth2
++             $table->text('refresh_token')->nullable(); // OAuth2
+            $table->dateTime('expires_at')->nullable(); // OAuth2
+            $table->timestamps();
+
+            $table->index(['user_id', 'id']);
+            $table->index(['provider', 'provider_id']);
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('connected_accounts');
+    }
+}
+```
+
+-   Run migrations.
+
+```bash
+./vendor/bin/sail artisan migrate
+```
+
+-   Continue to setup your provider as per [the Socialstream documentation](https://docs.socialstream.dev/getting-started/configuration).
+
+-   Register with your provider, query the `connected_accounts` table, and you'll see that the `token`, `secret`, and `refresh_token` columns are automatically encrypted in your database. They will also be automatically decrypted by the `Encrypted` package when they need to be used by `Socialstream`.

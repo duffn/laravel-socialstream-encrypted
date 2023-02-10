@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "170225ba040c85af7ca33a161f6ec438",
+    "content-hash": "a88e4cfb5c792a3689628ccce91d8c0b",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -115,6 +115,63 @@
                 }
             ],
             "time": "2022-08-10T22:54:19+00:00"
+        },
+        {
+            "name": "crudly/encrypted",
+            "version": "1.4.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Crudly/Encrypted.git",
+                "reference": "ddaedd12d5cdae9be27fd38cdfa427af6beca017"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Crudly/Encrypted/zipball/ddaedd12d5cdae9be27fd38cdfa427af6beca017",
+                "reference": "ddaedd12d5cdae9be27fd38cdfa427af6beca017",
+                "shasum": ""
+            },
+            "require": {
+                "laravel/framework": "^9.0"
+            },
+            "require-dev": {
+                "orchestra/testbench": "^7.0",
+                "phpunit/phpunit": "^9.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Crudly\\Encrypted\\": "src"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Larzs",
+                    "email": "wester@inbox.lv",
+                    "homepage": "https://github.com/orgs/crudly/people/Larzs"
+                },
+                {
+                    "name": "Juris Evertovskis",
+                    "email": "juris@glaive.pro",
+                    "homepage": "https://github.com/tontonsb"
+                }
+            ],
+            "description": "Encryption and hashing casts for Eloquent",
+            "homepage": "https://github.com/crudly/encrypted",
+            "keywords": [
+                "eloquent",
+                "encryption",
+                "hashing",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/Crudly/Encrypted/issues",
+                "source": "https://github.com/Crudly/Encrypted/tree/1.4.0"
+            },
+            "time": "2022-02-22T22:10:59+00:00"
         },
         {
             "name": "dasprid/enum",
